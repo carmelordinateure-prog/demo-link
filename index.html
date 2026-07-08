@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CARMEL LINK</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #000; color: #0f0; font-family: monospace; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; font-size: 14px; }
+pre { white-space: pre-wrap; word-break: break-all; text-align: center; line-height: 1.4; }
+.worm { color: #f00; }
+.hex-line { color: #aa0; }
+.msg-cyan { color: #0ff; font-weight: bold; }
+.msg-yellow { color: #ff0; }
+.hex-bottom { color: #0f0; }
+img { max-width: 90vw; max-height: 50vh; border: 2px solid #0f0; margin: 10px 0; border-radius: 5px; display: none; }
+</style>
+</head>
+<body>
+<div id="content">
+<pre class="worm">
+██████████████████████████████████████
+██  CODE CONSUMED BY DIGITAL WORM  ██
+██████████████████████████████████████
+</pre>
+<pre id="hex1" class="hex-line"></pre>
+<pre id="hex2" class="hex-line"></pre>
+<pre id="hex3" class="hex-line"></pre>
+<pre class="worm">
+██████████████████████████████████████
+██                                ██
+██  *** CARMEL LINK EST UN       ██
+</pre>
+<pre class="msg-cyan">      HACKER PRO ***</pre>
+<pre class="worm">
+██                                ██
+</pre>
+<pre class="msg-yellow">██  TU NE PEUX RIEN FAIRE         ██
+██  CONTRE UN PRO COMME LUI       ██</pre>
+<pre class="worm">
+██                                ██
+██████████████████████████████████████
+</pre>
+<pre id="hex4" class="hex-bottom"></pre>
+<pre id="hex5" class="hex-bottom"></pre>
+</div>
+<img id="photo" src="photo.png" alt="photo">
+<script>
+function randHex() { return Math.floor(Math.random()*16).toString(16).toUpperCase(); }
+function hexLine() { let h = "0x"; for(let i=0;i<40;i++) h += randHex(); return h; }
+function update() {
+    document.getElementById('hex1').textContent = hexLine();
+    document.getElementById('hex2').textContent = hexLine();
+    document.getElementById('hex3').textContent = hexLine();
+    document.getElementById('hex4').textContent = hexLine();
+    document.getElementById('hex5').textContent = hexLine();
+}
+setInterval(update, 300);
+update();
+setTimeout(() => {
+    document.getElementById('photo').style.display = 'block';
+}, 3000);
+</script>
+</body>
+</html>
