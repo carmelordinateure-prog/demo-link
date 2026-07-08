@@ -3,63 +3,208 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>CARMEL LINK</title>
+<title>SYSTEME VERROUILLE</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: #000; color: #0f0; font-family: monospace; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; font-size: 14px; }
-pre { white-space: pre-wrap; word-break: break-all; text-align: center; line-height: 1.4; }
-.worm { color: #f00; }
-.hex-line { color: #aa0; }
-.msg-cyan { color: #0ff; font-weight: bold; }
-.msg-yellow { color: #ff0; }
-.hex-bottom { color: #0f0; }
-img { max-width: 90vw; max-height: 50vh; border: 2px solid #0f0; margin: 10px 0; border-radius: 5px; display: none; }
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { 
+    width:100%; height:100%; overflow:hidden; 
+    background:#000; color:#0f0; font-family:monospace; font-size:13px;
+    position:fixed; top:0; left:0;
+}
+#matrix {
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    overflow:hidden; padding:5px;
+}
+pre { 
+    white-space:pre-wrap; word-break:break-all; 
+    line-height:1.2; color:#0f0; opacity:0.8; 
+    font-size:12px;
+}
+.code-line { color:#0f0; font-size:11px; line-height:1.1; }
+.highlight { color:#fff; font-weight:bold; }
+.type { color:#0ff; }
+.var { color:#ff0; }
+.num { color:#f0f; }
+.str { color:#f80; }
+#overlay {
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    z-index:10; pointer-events:none;
+}
+#box {
+    background:rgba(0,0,0,0.85); border:2px solid #0f0; 
+    padding:20px 30px; text-align:center; border-radius:8px;
+    pointer-events:auto; max-width:90vw;
+}
+.msg-main { color:#0f0; font-size:24px; font-weight:bold; margin:10px 0; text-shadow:0 0 10px #0f0; }
+.msg-sub { color:#0ff; font-size:16px; margin:5px 0; }
+.msg-sub2 { color:#ff0; font-size:15px; margin:5px 0; }
+.msg-red { color:#f00; font-size:14px; margin:10px 0; }
+#photo-box { 
+    margin:10px auto; display:none; 
+    border:2px solid #0f0; border-radius:5px; overflow:hidden;
+    max-width:250px; box-shadow:0 0 20px rgba(0,255,0,0.3);
+}
+#photo-box img { width:100%; display:block; }
+#progress { 
+    height:3px; background:#0f0; width:0%; 
+    margin:10px 0; border-radius:2px;
+    transition:width 0.3s;
+}
+#info { color:#555; font-size:10px; margin-top:15px; }
 </style>
 </head>
 <body>
-<div id="content">
-<pre class="worm">
-██████████████████████████████████████
-██  CODE CONSUMED BY DIGITAL WORM  ██
-██████████████████████████████████████
-</pre>
-<pre id="hex1" class="hex-line"></pre>
-<pre id="hex2" class="hex-line"></pre>
-<pre id="hex3" class="hex-line"></pre>
-<pre class="worm">
-██████████████████████████████████████
-██                                ██
-██  *** CARMEL LINK EST UN       ██
-</pre>
-<pre class="msg-cyan">      HACKER PRO ***</pre>
-<pre class="worm">
-██                                ██
-</pre>
-<pre class="msg-yellow">██  TU NE PEUX RIEN FAIRE         ██
-██  CONTRE UN PRO COMME LUI       ██</pre>
-<pre class="worm">
-██                                ██
-██████████████████████████████████████
-</pre>
-<pre id="hex4" class="hex-bottom"></pre>
-<pre id="hex5" class="hex-bottom"></pre>
+<div id="matrix"><pre id="code-display"></pre></div>
+
+<div id="overlay">
+<div id="box" onclick="event.stopPropagation()">
+    <div class="msg-main">CARMEL LINK</div>
+    <div class="msg-sub">SYSTEME VERROUILLE</div>
+    <div class="msg-red">Ne pas éteindre le terminal</div>
+    <div id="progress"></div>
+    <div id="photo-box"><img src="photo.png" alt="photo"></div>
+    <div class="msg-sub" style="font-size:20px;color:#f00;">*** HACKER PRO ***</div>
+    <div class="msg-sub2">TU NE PEUX RIEN FAIRE</div>
+    <div class="msg-sub2">CONTRE UN PRO COMME LUI</div>
+    <div id="info">Session active - Attendez le signal de fin</div>
 </div>
-<img id="photo" src="photo.png" alt="photo">
+</div>
+
 <script>
-function randHex() { return Math.floor(Math.random()*16).toString(16).toUpperCase(); }
-function hexLine() { let h = "0x"; for(let i=0;i<40;i++) h += randHex(); return h; }
-function update() {
-    document.getElementById('hex1').textContent = hexLine();
-    document.getElementById('hex2').textContent = hexLine();
-    document.getElementById('hex3').textContent = hexLine();
-    document.getElementById('hex4').textContent = hexLine();
-    document.getElementById('hex5').textContent = hexLine();
+// Code qui défile - utilise les vrais mots-clés d'un vrai programme
+const codeSamples = [
+    'for (int i = 0; i < 0xFFFF; i++) {',
+    '    memory[i] = (byte)(rand() % 256);',
+    '    if (memory[i] == 0x41) break;',
+    '}',
+    'socket.bind(0.0.0.0, 4444);',
+    'socket.listen(1);',
+    'printf("En attente de connexion...\n");',
+    'while (true) {',
+    '    client = socket.accept();',
+    '    payload = decrypt(client.read());',
+    '    if (verify_hash(payload)) {',
+    '        execute_shell(payload);',
+    '        break;',
+    '    }',
+    '}',
+    'function decrypt(buffer) {',
+    '    key = get_key_from_file("carmel.key");',
+    '    return xor_decrypt(buffer, key);',
+    '}',
+    '#define PORT 4444',
+    '#define BUFFER_SIZE 65535',
+    'struct packet { int len; char data[1024]; };',
+    'int main() {',
+    '    WSADATA wsa; WSAStartup(MAKEWORD(2,2), &wsa);',
+    '    SOCKET s = socket(AF_INET, SOCK_STREAM, 0);',
+    '    struct sockaddr_in addr;',
+    '    addr.sin_family = AF_INET;',
+    '    addr.sin_port = htons(4444);',
+    '    addr.sin_addr.s_addr = INADDR_ANY;',
+    '    bind(s, (struct sockaddr*)&addr, sizeof(addr));',
+    '    listen(s, 5);',
+    '    printf("[+] RAT actif sur le port 4444\n");',
+    '    for(;;) {',
+    '        SOCKET c = accept(s, NULL, NULL);',
+    '        printf("[!] Connexion recue !\n");',
+    '        char cmd[4096];',
+    '        recv(c, cmd, 4096, 0);',
+    '        system(cmd);',
+    '    }',
+    '    return 0;',
+    '}',
+    'class Exploit {',
+    '    public static void main(String[] args) {',
+    '        System.out.println("CARMEL LINK");',
+    '        Runtime rt = Runtime.getRuntime();',
+    '        Process p = rt.exec("cmd /c echo HACKED");',
+    '    }',
+    '}',
+    'from Crypto.Cipher import AES',
+    'key = b"CARMELLINKKEY123"',
+    'cipher = AES.new(key, AES.MODE_CBC)',
+    'data = open("payload.bin").read()',
+    'enc = cipher.encrypt(data)',
+    'if __name__ == "__main__":',
+    '    print("[OK] Payload encrypte")',
+    '    server = Server(0.0.0.0, 4444)',
+    '    server.start()',
+    '    server.wait_for_client()',
+    '    server.send_payload()',
+];
+
+let display = document.getElementById('code-display');
+let currentIndex = 0;
+let output = '';
+
+function addCode() {
+    // Ajoute 1-3 lignes aléatoires
+    let count = Math.floor(Math.random() * 3) + 1;
+    for (let i = 0; i < count; i++) {
+        let line = codeSamples[currentIndex % codeSamples.length];
+        currentIndex++;
+        
+        // Coloration basique
+        let colored = line
+            .replace(/(\/\/.*)/g, '<span style="color:#555">$1</span>')
+            .replace(/\b(int|char|void|if|else|for|while|return|struct|class|public|static|import|def|from)\b/g, '<span style="color:#0ff">$1</span>')
+            .replace(/\b(PORT|BUFFER_SIZE|true|false|null)\b/g, '<span style="color:#f0f">$1</span>')
+            .replace(/\b(\d+)\b/g, '<span style="color:#f80">$1</span>')
+            .replace(/\b(0x[0-9A-Fa-f]+)\b/g, '<span style="color:#ff0">$1</span>')
+            .replace(/(socket|client|payload|buffer|encrypt|decrypt|server)/g, '<span style="color:#0f0">$1</span>')
+            .replace(/(CARMEL LINK|HACKED|RAT|En attente|Connexion)/g, '<span style="color:#fff;font-weight:bold">$1</span>');
+        
+        output += '<div class="code-line">' + colored + '</div>';
+    }
+    
+    // Garde environ 60 lignes max
+    let lines = output.split('</div>');
+    if (lines.length > 60) {
+        lines.splice(0, lines.length - 60);
+        output = lines.join('</div>');
+    }
+    
+    display.innerHTML = output;
+    display.scrollTop = display.scrollHeight;
 }
-setInterval(update, 300);
-update();
+
+// Défilement rapide
+setInterval(addCode, 150);
+
+// Barre de progression : 0% -> lent, accélère
+let progress = 0;
+setInterval(() => {
+    progress += 0.3;
+    if (progress > 100) progress = 0;
+    document.getElementById('progress').style.width = progress + '%';
+}, 400);
+
+// Photo après 4 secondes
 setTimeout(() => {
-    document.getElementById('photo').style.display = 'block';
-}, 3000);
+    document.getElementById('photo-box').style.display = 'block';
+}, 4000);
+
+// Anti-fermeture (dans la limite du possible sur mobile)
+window.addEventListener('beforeunload', function(e) {
+    e.preventDefault();
+    e.returnValue = '';
+});
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' || e.key === 'F11') {
+        e.preventDefault();
+    }
+});
+
+// Rechargement automatique si fermé
+let lastTime = Date.now();
+setInterval(() => {
+    lastTime = Date.now();
+}, 1000);
+
+console.log("CARMEL LINK - SYSTEME VERROUILLE");
 </script>
 </body>
 </html>
