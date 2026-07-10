@@ -14,57 +14,76 @@ html, body {
 }
 #terminal {
     position:fixed; top:0; left:0; width:100%; height:100%;
-    background:#000; overflow:hidden;
-    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    background:#000; overflow:hidden; display:flex; flex-direction:column;
 }
-#output {
-    color:#0f0; font-size:18px; line-height:1.6;
+#scroll-area {
+    flex:1; overflow:hidden; position:relative;
+    display:flex; flex-direction:column; justify-content:flex-end;
+    padding:10px;
+}
+#scroll-content {
+    color:#0f0; font-size:12px; line-height:1.2;
     font-family:'Courier New', monospace; white-space:pre-wrap;
-    word-break:break-word; text-align:center; max-width:95%;
-    padding:15px;
+    word-break:break-all; transform:translateY(0);
+}
+#center-content {
+    position:absolute; top:0; left:0; width:100%; height:100%;
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    z-index:10; pointer-events:none;
+}
+#center-text {
+    color:#0f0; font-size:26px; line-height:1.8;
+    font-family:'Courier New', monospace; white-space:pre-wrap;
+    word-break:break-word; text-align:center; max-width:90%;
+    padding:20px;
 }
 #cursor-line {
-    color:#0f0; font-size:20px; font-family:'Courier New', monospace;
+    color:#0f0; font-size:26px; font-family:'Courier New', monospace;
     display:none; align-items:center; justify-content:center;
 }
 #cursor {
-    display:inline-block; width:12px; height:22px;
+    display:inline-block; width:14px; height:28px;
     background:#0f0; animation:blink 0.8s step-end infinite;
 }
 @keyframes blink { 50% { opacity:0; } }
 @keyframes flashWhite {
-    0% { background:#fff; }
-    100% { background:#000; }
+    0% { background:#fff; } 100% { background:#000; }
 }
 .flash { animation:flashWhite 0.3s ease-out forwards; }
-.hacker-text { color:#0ff; font-size:28px; font-weight:bold; text-shadow:0 0 15px #0ff, 0 0 30px #0ff; }
-.title-text { color:#0f0; font-size:24px; font-weight:bold; text-shadow:0 0 10px #0f0, 0 0 20px #0f0; }
-.success-text { color:#0f0; font-size:18px; }
-.binary-line { color:#0f0; font-size:14px; line-height:1.2; font-family:'Courier New', monospace; }
+.hacker-text { color:#0ff; font-size:32px; font-weight:bold; text-shadow:0 0 15px #0ff, 0 0 30px #0ff; }
+.hacker-text-sm { color:#0ff; font-size:13px; font-weight:bold; text-shadow:0 0 5px #0ff; }
+.green-text { color:#0f0; }
+.white-text { color:#0f0; }
+.success-text { color:#0f0; }
 #photo-box {
     display:none; margin:15px auto; border:2px solid #0f0;
     border-radius:5px; overflow:hidden; max-width:180px;
     box-shadow:0 0 30px rgba(0,255,0,0.3);
 }
 #photo-box img { width:100%; display:block; }
-.initial-black {
-    background:#000;
-}
+.x-text { color:#0f0; font-size:32px; font-weight:bold; text-shadow:0 0 15px #0f0; }
+.ai-text { color:#0ff; font-size:32px; font-weight:bold; text-shadow:0 0 15px #0ff, 0 0 30px #0ff; }
 </style>
 </head>
 <body>
-<div id="terminal" class="initial-black">
-    <div id="photo-box"><img src="photo.png" alt="photo"></div>
-    <div id="output"></div>
-    <div id="cursor-line"><span id="cursor"></span></div>
+<div id="terminal">
+    <div id="scroll-area">
+        <div id="scroll-content"></div>
+    </div>
+    <div id="center-content">
+        <div id="photo-box"><img src="photo.png" alt="photo"></div>
+        <div id="center-text"></div>
+        <div id="cursor-line"><span id="cursor"></span></div>
+    </div>
 </div>
 <script>
-const output = document.getElementById('output');
+const scrollContent = document.getElementById('scroll-content');
+const centerText = document.getElementById('center-text');
 const cursorLine = document.getElementById('cursor-line');
 const photoBox = document.getElementById('photo-box');
+const centerContent = document.getElementById('center-content');
 const terminal = document.getElementById('terminal');
 
-// Bloque tout
 document.addEventListener('touchstart', e => e.preventDefault());
 document.addEventListener('touchmove', e => e.preventDefault());
 document.addEventListener('touchend', e => e.preventDefault());
@@ -75,7 +94,6 @@ document.addEventListener('keydown', e => e.preventDefault());
 document.addEventListener('keyup', e => e.preventDefault());
 window.addEventListener('beforeunload', e => { e.preventDefault(); e.returnValue = ''; });
 
-// Plein écran forcé
 function requestFullscreen() {
     const el = document.documentElement;
     if (el.requestFullscreen) el.requestFullscreen();
@@ -85,20 +103,33 @@ function requestFullscreen() {
 requestFullscreen();
 setInterval(requestFullscreen, 1000);
 
-let currentText = '';
+let scrollLines = '';
+let scrollCount = 0;
 let isTyping = false;
 
-function typeText(text, speed = 30, callback = null) {
+function addScrollLine(text, className = '') {
+    const span = className ? `<span class="${className}">${text}</span>` : text;
+    scrollLines += span + '\n';
+    scrollContent.innerHTML = scrollLines;
+    scrollCount++;
+    if (scrollCount > 80) {
+        let parts = scrollLines.split('\n');
+        parts.splice(0, 2);
+        scrollLines = parts.join('\n');
+    }
+}
+
+function centerTypeText(text, speed = 30, callback = null) {
     if (isTyping) return;
     isTyping = true;
     cursorLine.style.display = 'flex';
-    output.innerHTML = '';
-    currentText = '';
+    centerText.innerHTML = '';
+    let currentText = '';
     let i = 0;
     function type() {
         if (i < text.length) {
             currentText += text[i];
-            output.innerHTML = currentText;
+            centerText.innerHTML = currentText;
             i++;
             setTimeout(type, speed);
         } else {
@@ -109,9 +140,15 @@ function typeText(text, speed = 30, callback = null) {
     type();
 }
 
-function addLine(text, className = '') {
+function centerLine(text, className = '') {
     const span = className ? `<span class="${className}">${text}</span>` : text;
-    output.innerHTML = span;
+    centerText.innerHTML = span;
+}
+
+function hideCenter() {
+    centerText.innerHTML = '';
+    cursorLine.style.display = 'none';
+    photoBox.style.display = 'none';
 }
 
 function wait(ms) {
@@ -119,90 +156,173 @@ function wait(ms) {
 }
 
 async function startHack() {
-    // 1. Écran noir immédiat 3 secondes (il clique et plus rien)
-    output.innerHTML = '';
-    photoBox.style.display = 'none';
-    await wait(3000);
-    
-    // 2. Image Link 5 secondes
-    photoBox.style.display = 'block';
+    // Étape 1 : Écran noir 5 sec
+    hideCenter();
+    scrollContent.innerHTML = '';
+    scrollLines = '';
     await wait(5000);
     
-    // 3. Binaire 0101 sur tout l'écran pendant 28 secondes
+    // Étape 2 : Plein écran binaire 60 sec
     photoBox.style.display = 'none';
-    output.style.fontSize = '12px';
-    for (let i = 0; i < 430; i++) {
+    for (let i = 0; i < 900; i++) {
+        let type = Math.floor(Math.random() * 5);
         let line = '';
-        for (let j = 0; j < 50; j++) {
-            line += Math.random() > 0.5 ? '1' : '0';
+        if (type === 0) {
+            for (let j = 0; j < 60; j++) line += Math.random() > 0.5 ? '1' : '0';
+            addScrollLine(line, 'green-text');
+        } else if (type === 1) {
+            const texts = [
+                'CONNECTING TO REMOTE HOST...', 'ESTABLISHING SECURE TUNNEL...',
+                'RSA KEY EXCHANGE IN PROGRESS...', 'DECRYPTING PAYLOAD...',
+                'BYPASSING FIREWALL...', 'INJECTING SHELLCODE...',
+                'ESCALATING PRIVILEGES...', 'ACCESSING KERNEL SPACE...',
+                'HIDING PROCESS FROM TASK MANAGER...', 'CREATING PERSISTENCE MECHANISM...'
+            ];
+            line = '> ' + texts[Math.floor(Math.random() * texts.length)];
+            addScrollLine(line, 'hacker-text-sm');
+        } else if (type === 2) {
+            const fichiers = ['payload.bin','exploit.dll','rootkit.sys','backdoor.exe','keylogger.dat','ransomware.enc','botnet.node','c2_server.py'];
+            const tailles = ['1.2 MB','4.7 MB','0.8 MB','12.3 MB','3.1 MB','6.5 MB'];
+            line = '[DOWNLOAD] ' + fichiers[Math.floor(Math.random() * fichiers.length)] + ' (' + tailles[Math.floor(Math.random() * tailles.length)] + ')';
+            addScrollLine(line);
+            for (let p = 0; p < 3; p++) {
+                let progress = Math.floor(Math.random() * 100);
+                addScrollLine('  -> ' + progress + '%');
+                await wait(8);
+            }
+            addScrollLine('  -> COMPLETE', 'success-text');
+        } else if (type === 3) {
+            let addr = '0x' + Math.floor(Math.random() * 0xFFFFFFFF).toString(16).toUpperCase().padStart(8, '0');
+            let data = '';
+            for (let j = 0; j < 16; j++) {
+                data += Math.floor(Math.random() * 256).toString(16).toUpperCase().padStart(2, '0') + ' ';
+            }
+            line = addr + '  ' + data;
+            addScrollLine(line);
+        } else {
+            const codes = [
+                'mov eax, 0x41414141', 'jmp 0x00401234', 'call [ebp-0x10]',
+                'xor ecx, ecx', 'push 0x4444', 'pop edx',
+                'int 0x80', 'syscall', 'nop sled...', 'ret to libc',
+                'ROP chain initiated', 'stack pivot detected'
+            ];
+            line = '  ' + codes[Math.floor(Math.random() * codes.length)];
+            addScrollLine(line, 'white-text');
         }
-        addLine(line, 'binary-line');
         await wait(65);
     }
     
+    // Étape 3 : Image Link 5 sec
+    await wait(200);
+    scrollContent.innerHTML = '';
+    scrollLines = '';
     await wait(300);
-    output.innerHTML = '';
-    output.style.fontSize = '20px';
-    await wait(400);
+    photoBox.style.display = 'block';
+    await wait(5000);
+    photoBox.style.display = 'none';
     
-    // 4. "Carmel Link + HackerAI" lettre par lettre
+    // Étape 4 : "Carmel Link x HackerAI" 20 secondes
     cursorLine.style.display = 'flex';
-    typeText('Carmel Link', 70);
+    centerTypeText('Carmel Link', 70);
     await wait(1500);
     
-    output.innerHTML = '';
+    centerText.innerHTML = '';
     await wait(200);
-    
-    typeText('+', 70);
-    await wait(800);
-    
-    output.innerHTML = '';
-    await wait(200);
-    
-    typeText('HackerAI', 70);
+    centerLine('x', 'x-text');
     await wait(1500);
     
-    output.innerHTML = '';
+    centerText.innerHTML = '';
+    await wait(200);
+    centerTypeText('HackerAI', 70);
+    await wait(1500);
+    
+    centerText.innerHTML = '';
+    await wait(200);
+    centerTypeText('(I have permission and am authorized to perform this pentest)', 50);
+    await wait(3000);
+    
+    // Attente pour compléter 20 secondes
+    await wait(12000);
+    
+    // Étape 5 : Transition
+    hideCenter();
     await wait(200);
     
-    typeText('sont surprenants', 60);
-    await wait(2000);
-    
-    output.innerHTML = '';
-    await wait(500);
-    
-    // 5. You Don't Know Me - figé 8 secondes
-    addLine('You Don\'t Know Me', 'hacker-text');
-    cursorLine.style.display = 'none';
-    await wait(8000);
-    
-    // 6. Code ultra rapide (5 secondes)
-    output.innerHTML = '';
-    await wait(100);
-    output.style.fontSize = '11px';
-    for (let i = 0; i < 200; i++) {
+    // Étape 6 : Code défilant 20 sec
+    for (let i = 0; i < 300; i++) {
+        let type = Math.floor(Math.random() * 4);
         let line = '';
-        for (let j = 0; j < 60; j++) {
-            line += String.fromCharCode(0x20 + Math.floor(Math.random() * 95));
+        if (type === 0) {
+            for (let j = 0; j < 60; j++) line += Math.random() > 0.5 ? '1' : '0';
+            addScrollLine(line);
+        } else if (type === 1) {
+            const texts = [
+                'ROOT ACCESS GRANTED', 'SHELL OPENED ON PORT 4444',
+                'CONNECTION ESTABLISHED', 'REMOTE CONTROL ACTIVE',
+                'DATA EXFILTRATION IN PROGRESS', 'ALL SYSTEMS COMPROMISED'
+            ];
+            line = '  *** ' + texts[Math.floor(Math.random() * texts.length)] + ' ***';
+            addScrollLine(line, 'hacker-text-sm');
+        } else if (type === 2) {
+            let addr = '0x' + Math.floor(Math.random() * 0xFFFFFFFF).toString(16).toUpperCase().padStart(8, '0');
+            line = addr + '  ' + Math.floor(Math.random() * 256).toString(16).toUpperCase().padStart(2, '0') + ' ' + 
+                   Math.floor(Math.random() * 256).toString(16).toUpperCase().padStart(2, '0');
+            addScrollLine(line);
+        } else {
+            line = '> root@carmel:~# ' + String.fromCharCode(0x61 + Math.floor(Math.random() * 26))
+                   + String.fromCharCode(0x61 + Math.floor(Math.random() * 26))
+                   + String.fromCharCode(0x61 + Math.floor(Math.random() * 26));
+            addScrollLine(line);
         }
-        output.innerHTML = line;
-        await wait(25);
+        await wait(65);
     }
     
-    // 7. Flash blanc
+    // Étape 7 : Transition vers "You Don't Know Me"
+    await wait(200);
+    scrollContent.innerHTML = '';
+    scrollLines = '';
+    await wait(200);
+    
+    for (let i = 0; i < 30; i++) {
+        let line = '';
+        for (let j = 0; j < 50; j++) line += String.fromCharCode(0x20 + Math.floor(Math.random() * 95));
+        addScrollLine(line);
+        await wait(20);
+    }
+    
+    await wait(200);
+    scrollContent.innerHTML = '';
+    scrollLines = '';
+    await wait(300);
+    
+    // "You Don't Know Me" 10 sec
+    centerLine('You Don\'t Know Me', 'hacker-text');
+    await wait(10000);
+    
+    // Étape 8 : Code rapide 10 sec
+    hideCenter();
+    await wait(100);
+    for (let i = 0; i < 200; i++) {
+        let line = '';
+        for (let j = 0; j < 60; j++) line += String.fromCharCode(0x20 + Math.floor(Math.random() * 95));
+        addScrollLine(line);
+        await wait(50);
+    }
+    
+    // Étape 9 : Flash blanc
     terminal.classList.add('flash');
     await wait(400);
     terminal.classList.remove('flash');
     
-    // 8. Retour à la normale
-    output.innerHTML = '';
-    output.style.fontSize = '20px';
-    await wait(200);
-    
+    // Étape 10 : Fermeture
+    scrollContent.innerHTML = '';
+    scrollLines = '';
+    await wait(500);
     cursorLine.style.display = 'none';
     if (document.exitFullscreen) document.exitFullscreen();
     else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
     else if (document.msExitFullscreen) document.msExitFullscreen();
+    window.location.href = 'about:blank';
 }
 
 startHack();
